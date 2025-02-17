@@ -1,0 +1,72 @@
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background-color: #222;
+    color: white;
+}
+
+.battlefield {
+    display: flex;
+     /* LOS PERSONAJES SE VAN A ENCONTRAR EN EL CENTRO DE LA PANTALLA*/
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    padding: 20px;
+}
+
+#hero-container, #enemy-container {
+    width: 100px; 
+    text-align: center;
+}
+
+/* TAMAÑO DE LOS PERSONAJES */
+.character {
+    width: 70px;
+    height: auto;
+}
+
+/* CUADRICULA DONDE SE COLOCAN LAS FICHAS */
+#grid {
+    display: grid;
+    grid-template-columns: repeat(5, 60px);
+    grid-gap: 5px;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.potion-image {
+    width: 40px;  
+    height: 40px;
+    cursor: pointer; 
+}
+
+.weapon-image {
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+}
+
+.stairs-image {
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+}
+
+/* FICHA */
+.tile {
+    width: 60px;
+    height: 60px;
+    background-color: #444;
+    border: 1px solid #666;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: white;
+    cursor: pointer;
+}
+
+/* FICHA DESCUBIERTA */
+.tile.revealed {
+    background-color: #888;
+}
