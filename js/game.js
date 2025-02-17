@@ -14,6 +14,12 @@ document.addEventListener("DOMContentLoaded", () => {
     livesDisplay.textContent = `Vidas: ${lives}`;
     document.body.insertBefore(livesDisplay, grid);
 
+
+    //MOSTRAR EL NIVEL DEL JUEGO
+    const levelDisplay = document.createElement("div");
+    levelDisplay.id = "levelDisplay";
+    levelDisplay.textContent = `Nivel: 0`;
+    document.body.insertBefore(levelDisplay, grid);
     // ARRAY DE CONTENIDOS DE LAS CASILLAS 
     const CONTENTS = ["vacio", "enemigo", "tesoro", "trampa", "pocion", "escalera", "arma"]; // MAS ADELANTE VOY A AGREGAR MAS COTENIDOS
 
@@ -26,7 +32,10 @@ document.addEventListener("DOMContentLoaded", () => {
         grid.appendChild(tile);
         tiles.push(tile);
     }
+    
 
+    let currentLevel = parseInt(levelDisplay.textContent.split(" ")[1]);
+    levelDisplay.textContent = `Nivel: ${currentLevel + 1}`;
     // FUNCION PARA REVELAR LAS CASILLAS Y VERIFICAR EL CONTENIDO DEPENDIENDO DE LAS CASILLAS SE VA A PRESENTAR UN EVENTO DISTINTO
     function revealTile(tile) {
         if (!tile.classList.contains("revealed") && !inCombat) {
