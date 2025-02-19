@@ -21,7 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
     levelDisplay.textContent = `Nivel: 0`;
     document.body.insertBefore(levelDisplay, grid);
     // ARRAY DE CONTENIDOS DE LAS CASILLAS 
-    const CONTENTS = ["vacio", "enemigo", "tesoro", "trampa", "pocion", "escalera", "arma"]; // MAS ADELANTE VOY A AGREGAR MAS COTENIDOS
+    const CONTENTS = ["vacio", "enemigo", "tesoro", "trampa", "pocion", "escalera", "arma","enemigo","enemigo","enemigo","enemigo","enemigo",]; // MAS ADELANTE VOY A AGREGAR MAS COTENIDOS
 
     // CREAR LAS CUADRICULAS CON EL CONTENIDO ALEATORIO
     for (let i = 0; i < gridSize * gridSize; i++) {
@@ -184,10 +184,22 @@ document.addEventListener("DOMContentLoaded", () => {
                 enemyHPElement.textContent = enemyHP;
 
                 if (enemyHP <= 0) {
+                    let enemyImage = document.getElementById("enemy");
+                    enemyImage.src = "/assets/dead.png";
+                    enemyImage.style.opacity = "0.5";
+
                     setTimeout(() => {
-                        alert("¡Has derrotado al enemigo!");
-                        document.body.removeChild(document.getElementById("combatModal"));
-                        inCombat = false;
+                        //alert("¡Has derrotado al enemigo!");
+                        Swal.fire({
+                            title: "Ganaste!!!",
+                            text: "Deerrotaste al enemigo!",
+                            icon: "success",
+                            confirmButtonText: "Continuar",
+                            width: "30%"
+                        }).then(() => {
+                            document.body.removeChild(document.getElementById("combatModal"));
+                            inCombat = false;
+                        });
                     }, 500);
                 } else {
                     setTimeout(() => enemyAttack(), 500);

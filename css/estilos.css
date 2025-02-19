@@ -6,13 +6,27 @@ body {
     color: white;
 }
 
+#combatModal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #000;
+    padding: 20px;
+    border-radius: 10px;
+    color: #fff;
+    z-index: 1000;
+    width: 50%;
+    /*MAX PARA LIMITAR EL TAMAÑO*/
+    max-width: 500px; 
+}
+
 .modal-content {
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
 }
-
 
 .battlefield {
     display: flex;
