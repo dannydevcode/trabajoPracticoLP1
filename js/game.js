@@ -157,15 +157,15 @@ document.addEventListener("DOMContentLoaded", () => {
         modal.id = "combatModal";
         modal.innerHTML = `
             <div class="modal-content">
-        <h2>¡Un enemigo apareció!</h2>
-        <div class="battlefield">
-            <div id="hero-container">
-                <img id="hero" class="character" src="/assets/paladin.png" alt="Heroe">
-            </div>
-            <div id="enemy-container">
-                <img id="enemy" class="character" src="/assets/troll.png" alt="Enemigo">
-            </div>
-        </div>
+                <h2>¡Un enemigo apareció!</h2>
+                <div class="battlefield">
+                    <div id="hero-container">
+                        <img id="hero" class="character" src="/assets/paladin.png" alt="Heroe">
+                    </div>
+                    <div id="enemy-container">
+                        <img id="enemy" class="character" src="/assets/troll.png" alt="Enemigo">
+                    </div>
+                </div>
         <p>Vida del enemigo: <span id="enemyHP">${enemyHP}</span></p>
     </div>
         `;
