@@ -1,6 +1,26 @@
+// CONEXION A BD CON DEXIE
+const db = new Dexie("JuegoCalabozoDB");
+db.version(1).stores({
+    // CLAVE PRIMARIA VA A SER NAME
+    hero: "name", 
+
+});
+
+// GUARDO EL NOMBRE DEL HEROE
+async function saveHeroName(name) {
+    // ELIMINO EL NOMBRE ANTERIOR
+    await db.hero.clear();
+    await db.hero.add({name});
+}
+
+// OBTENER EL DATO ALMACENADO
+async function getHeroName(name) {
+    const hero = await db.hero.toCollection().first();
+    return hero ? hero.name : null;
+}
 //ASEGURARSE DE QUE SE CARGE EL DOCUMENTO ANTES DE EJECUTAR EL JUEGO
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
     const gridSize = 5; // DE MOMENTO EL TAMAÑO DE LA CUADRICULA ES (5x5)
     const grid = document.getElementById("grid"); // EN ESTE ELEMENTO SE RENDERIZA LA CUADRICULA
     const tiles = []; // ARRAY QUE ALMACENA LAS CASILLAS DE LA CUUDRICULA
@@ -8,11 +28,51 @@ document.addEventListener("DOMContentLoaded", () => {
     let heroDamage = 3; // DAÑO BASE DEL HEROE
     let inCombat = false; // INDICADOR SI EL JUGADOR ESTA EN COMBATE
 
-    // CREA Y MUESTRA EL CONTADOR DE VIDAS
-    const livesDisplay = document.createElement("div");
-    livesDisplay.id = "lives";
-    livesDisplay.textContent = `Vidas: ${lives}`;
-    document.body.insertBefore(livesDisplay, grid);
+    const storedHero = await getHeroName();
+
+    if(!storedHero) {
+        showHeroModal();
+    } else {
+        displayHeroName(storedHero);
+    }
+
+     // CREA Y MUESTRA EL CONTADOR DE VIDAS
+     const livesDisplay = document.createElement("div");
+     livesDisplay.id = "lives";
+     livesDisplay.textContent = `Vidas: ${lives}`;
+     document.body.insertBefore(livesDisplay, grid);
+
+    function showHeroModal() {
+        const modal = document.createElement("div");
+        modal.id = "heroModal";
+        modal.innerHTML = `
+            <div>
+                <h2>Ingrese el Nombre de su Heroe</h2>
+                <input type ="text" id ="heroNameInput" placeholder = "Nombe del Heroe">
+                <button id="saveHeroButton">Guardar</button>
+            </div>
+        `;
+        document.body.appendChild(modal);
+
+        document.getElementById("saveHeroButton").addEventListener("click", async () => {
+            const heroName = document.getElementById("heroNameInput").value.trim();
+            if(heroName) {
+                await saveHeroName(heroName);
+                document.body.removeChild(modal);
+                displayHeroName(heroName);
+            }
+        })
+    }
+
+    function displayHeroName(name) {
+        let heroDisplay = document.getElementById("heroDisplay");
+        if(!heroDisplay) {
+            heroDisplay = document.createElement("div");
+            heroDisplay.id = "heroDisplay";
+            document.body.insertBefore(heroDisplay, livesDisplay);
+        }
+        heroDisplay.textContent = `Heroe: ${name};`
+    }
 
 
     //MOSTRAR EL NIVEL DEL JUEGO
@@ -165,6 +225,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     <div id="enemy-container">
                         <img id="enemy" class="character" src="/assets/troll.png" alt="Enemigo">
                     </div>
+                    
                 </div>
         <p>Vida del enemigo: <span id="enemyHP">${enemyHP}</span></p>
     </div>
