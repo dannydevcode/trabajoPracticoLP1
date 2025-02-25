@@ -27,14 +27,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     let lives = 3; // CONTADOR DE VIDAS DEL JUAGADOR MAS ADELANTE SE VA A INICIALIZAR CON MAS VIDAS
     let heroDamage = 3; // DAÑO BASE DEL HEROE
     let inCombat = false; // INDICADOR SI EL JUGADOR ESTA EN COMBATE
+    await db.hero.clear();
 
     const storedHero = await getHeroName();
-
-    if(!storedHero) {
-        showHeroModal();
-    } else {
-        displayHeroName(storedHero);
-    }
 
      // CREA Y MUESTRA EL CONTADOR DE VIDAS
      const livesDisplay = document.createElement("div");
@@ -42,7 +37,20 @@ document.addEventListener("DOMContentLoaded", async () => {
      livesDisplay.textContent = `Vidas: ${lives}`;
      document.body.insertBefore(livesDisplay, grid);
 
+    if(!storedHero) {
+        showHeroModal();
+    } else {
+        displayHeroName(storedHero);
+    }
+
+    
+
     function showHeroModal() {
+
+        const overlay = document.createElement("div");
+        overlay.id = "modalOverlay";
+        document.body.appendChild(overlay);
+
         const modal = document.createElement("div");
         modal.id = "heroModal";
         modal.innerHTML = `
@@ -59,6 +67,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             if(heroName) {
                 await saveHeroName(heroName);
                 document.body.removeChild(modal);
+                document.body.removeChild(overlay);
                 displayHeroName(heroName);
             }
         })
