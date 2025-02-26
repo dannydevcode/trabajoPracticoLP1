@@ -9,7 +9,7 @@ db.version(1).stores({
 // GUARDO EL NOMBRE DEL HEROE
 async function saveHeroName(name) {
     // ELIMINO EL NOMBRE ANTERIOR
-    await db.hero.clear();
+    // await db.hero.clear();
     await db.hero.add({name});
 }
 
@@ -90,7 +90,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     levelDisplay.textContent = `Nivel: 0`;
     document.body.insertBefore(levelDisplay, grid);
     // ARRAY DE CONTENIDOS DE LAS CASILLAS 
-    const CONTENTS = ["vacio", "enemigo", "tesoro", "trampa", "pocion", "escalera", "arma","enemigo","enemigo","enemigo","enemigo","enemigo",]; // MAS ADELANTE VOY A AGREGAR MAS COTENIDOS
+    const CONTENTS = ["vacio", "enemigo", "tesoro", "trampa", "pocion", "escalera", "arma","enemigo","enemigo","trampa","trampa","trampa",]; // MAS ADELANTE VOY A AGREGAR MAS COTENIDOS
 
     // CREAR LAS CUADRICULAS CON EL CONTENIDO ALEATORIO
     for (let i = 0; i < gridSize * gridSize; i++) {
@@ -133,6 +133,13 @@ document.addEventListener("DOMContentLoaded", async () => {
                 tile.appendChild(img);
                 tile.addEventListener("click", () => collectWeapon(tile));
             }  else if (tile.dataset.content === "trampa") {
+                const img = document.createElement("img");
+                img.src = "assets/trap.png";
+                img.alt = "Trampa";
+                img.classList.add("trap-image");
+
+                tile.textContent = "";
+                tile.appendChild(img);
                 activateTrap();
 
             } else if (tile.dataset.content === "escalera") {
@@ -256,7 +263,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 if (enemyHP <= 0) {
                     let enemyImage = document.getElementById("enemy");
                     enemyImage.src = "/assets/dead.png";
-                    enemyImage.style.opacity = "0.5";
+                    // enemyImage.style.opacity = "0.5";
 
                     setTimeout(() => {
                         //alert("¡Has derrotado al enemigo!");
@@ -269,6 +276,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                         }).then(() => {
                             document.body.removeChild(document.getElementById("combatModal"));
                             inCombat = false;
+
                         });
                     }, 500);
                 } else {
