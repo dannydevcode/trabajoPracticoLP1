@@ -1,276 +1,341 @@
 // CONEXION A BD CON DEXIE
 const db = new Dexie("JuegoCalabozoDB");
 db.version(1).stores({
-    // CLAVE PRIMARIA VA A SER NAME
-    hero: "name", 
-
+  // CLAVE PRIMARIA VA A SER NAME
+  hero: "name",
 });
 
 // GUARDO EL NOMBRE DEL HEROE
 async function saveHeroName(name) {
-    // ELIMINO EL NOMBRE ANTERIOR
-    await db.hero.clear();
-    await db.hero.add({name});
+  // ELIMINO EL NOMBRE ANTERIOR
+  await db.hero.clear();
+  await db.hero.add({ name });
 }
-
-
 
 // OBTENER EL DATO ALMACENADO
 async function getHeroName(name) {
-    const hero = await db.hero.toCollection().first();
-    return hero ? hero.name : null;
+  const hero = await db.hero.toCollection().first();
+  return hero ? hero.name : null;
 }
 //ASEGURARSE DE QUE SE CARGE EL DOCUMENTO ANTES DE EJECUTAR EL JUEGO
 
 document.addEventListener("DOMContentLoaded", async () => {
-    // showHeroModal();
-    const gridSize = 5; // DE MOMENTO EL TAMAÑO DE LA CUADRICULA ES (5x5)
-    const grid = document.getElementById("grid"); // EN ESTE ELEMENTO SE RENDERIZA LA CUADRICULA
-    const tiles = []; // ARRAY QUE ALMACENA LAS CASILLAS DE LA CUUDRICULA
-    let lives = 3; // CONTADOR DE VIDAS DEL JUAGADOR MAS ADELANTE SE VA A INICIALIZAR CON MAS VIDAS
-    let heroDamage = 3; // DAÑO BASE DEL HEROE
-    let diamonds = 0;
-    let inCombat = false; // INDICADOR SI EL JUGADOR ESTA EN COMBATE
-    await db.hero.clear();
-    
+  // showHeroModal();
+  const gridSize = 5; // DE MOMENTO EL TAMAÑO DE LA CUADRICULA ES (5x5)
+  const grid = document.getElementById("grid"); // EN ESTE ELEMENTO SE RENDERIZA LA CUADRICULA
+  const tiles = []; // ARRAY QUE ALMACENA LAS CASILLAS DE LA CUUDRICULA
+  let lives = 3; // CONTADOR DE VIDAS DEL JUAGADOR MAS ADELANTE SE VA A INICIALIZAR CON MAS VIDAS
+  let heroDamage = 3; // DAÑO BASE DEL HEROE
+  let diamonds = 0;
+  let inCombat = false; // INDICADOR SI EL JUGADOR ESTA EN COMBATE
+  await db.hero.clear();
+
+  const storedHero = await getHeroName();
+
+  document.getElementById("heroModal")?.remove();
+  document.getElementById("modalOverlay")?.remove();
+  // CREA Y MUESTRA EL CONTADOR DE VIDAS
+  const livesDisplay = document.createElement("div");
+  livesDisplay.id = "lives";
+  livesDisplay.textContent = `Vidas: ${lives}`;
+  document.body.insertBefore(livesDisplay, grid);
+
+  const diamondsDisplay = document.createElement("div");
+  diamondsDisplay.id = "diamond";
+  diamondsDisplay.textContent = `Diamantes: ${diamonds}`;
+  document.body.insertBefore(diamondsDisplay, grid);
+
+  if (!storedHero) {
+    showHeroModal();
+  } else {
+    displayHeroName(storedHero);
+  }
+
+  async function showHeroModal() {
     const storedHero = await getHeroName();
 
+    const overlay = document.createElement("div");
+    overlay.id = "modalOverlay";
+    document.body.appendChild(overlay);
 
-    document.getElementById("heroModal")?.remove();
-    document.getElementById("modalOverlay")?.remove();
-     // CREA Y MUESTRA EL CONTADOR DE VIDAS
-     const livesDisplay = document.createElement("div");
-     livesDisplay.id = "lives";
-     livesDisplay.textContent = `Vidas: ${lives}`;
-     document.body.insertBefore(livesDisplay, grid);
-
-     const diamondsDisplay = document.createElement("div");
-     diamondsDisplay.id = "diamond";
-     diamondsDisplay.textContent = `Diamantes: ${diamonds}`;
-     document.body.insertBefore(diamondsDisplay, grid);
-
-    if(!storedHero) {
-        showHeroModal();
-    } else {
-        displayHeroName(storedHero);
-    }
-
-    
-
-    async function showHeroModal() {
-        const storedHero = await getHeroName();
-
-        const overlay = document.createElement("div");
-        overlay.id = "modalOverlay";
-        document.body.appendChild(overlay);
-
-        const modal = document.createElement("div");
-        modal.id = "heroModal";
-        modal.innerHTML = `
+    const modal = document.createElement("div");
+    modal.id = "heroModal";
+    modal.innerHTML = `
             <div>
                 <h2>Ingrese el Nombre de su Heroe</h2>
-                <input type="text" id="heroNameInput" placeholder="Nombre del Héroe" value="${storedHero || ''}">
+                <input type="text" id="heroNameInput" placeholder="Nombre del Héroe" value="${
+                  storedHero || ""
+                }">
                 <button id="saveHeroButton">Guardar</button>
             </div>
         `;
-        document.body.appendChild(modal);
+    document.body.appendChild(modal);
 
-        document.getElementById("saveHeroButton").addEventListener("click", async () => {
-            const heroName = document.getElementById("heroNameInput").value.trim();
-            if(heroName) {
-                await saveHeroName(heroName);
-                document.body.removeChild(modal);
-                document.body.removeChild(overlay);
-                displayHeroName(heroName);
-            }
-        });
-    }
-
-    function displayHeroName(name) {
-        let heroDisplay = document.getElementById("heroDisplay");
-        if(!heroDisplay) {
-            heroDisplay = document.createElement("div");
-            heroDisplay.id = "heroDisplay";
-            document.body.insertBefore(heroDisplay, livesDisplay);
+    document
+      .getElementById("saveHeroButton")
+      .addEventListener("click", async () => {
+        const heroName = document.getElementById("heroNameInput").value.trim();
+        if (heroName) {
+          await saveHeroName(heroName);
+          document.body.removeChild(modal);
+          document.body.removeChild(overlay);
+          displayHeroName(heroName);
         }
-        heroDisplay.textContent = `Heroe: ${name};`
+      });
+  }
+
+  function displayHeroName(name) {
+    let heroDisplay = document.getElementById("heroDisplay");
+    if (!heroDisplay) {
+      heroDisplay = document.createElement("div");
+      heroDisplay.id = "heroDisplay";
+      document.body.insertBefore(heroDisplay, livesDisplay);
     }
+    heroDisplay.textContent = `Heroe: ${name};`;
+  }
 
+  //MOSTRAR EL NIVEL DEL JUEGO
+  const levelDisplay = document.createElement("div");
+  levelDisplay.id = "levelDisplay";
+  levelDisplay.textContent = `Nivel: 0`;
+  document.body.insertBefore(levelDisplay, grid);
+  // ARRAY DE CONTENIDOS DE LAS CASILLAS
+  const CONTENTS = [
+    "vacio",
+    "enemigo",
+    "tesoro",
+    "trampa",
+    "pocion",
+    "escalera",
+    "arma",
+    "enemigo",
+    "enemigo",
+    "trampa",
+    "trampa",
+    "trampa",
+    "tesoro",
+    "tesoro",
+    "tesoro",
+    "tesoro",
+  ]; // MAS ADELANTE VOY A AGREGAR MAS COTENIDOS
 
-    //MOSTRAR EL NIVEL DEL JUEGO
-    const levelDisplay = document.createElement("div");
-    levelDisplay.id = "levelDisplay";
-    levelDisplay.textContent = `Nivel: 0`;
-    document.body.insertBefore(levelDisplay, grid);
-    // ARRAY DE CONTENIDOS DE LAS CASILLAS 
-    const CONTENTS = ["vacio", "enemigo", "tesoro", "trampa", "pocion", "escalera", "arma","enemigo","enemigo","trampa","trampa","trampa", "tesoro", "tesoro", "tesoro", "tesoro"]; // MAS ADELANTE VOY A AGREGAR MAS COTENIDOS
+  // CREAR LAS CUADRICULAS CON EL CONTENIDO ALEATORIO
+  for (let i = 0; i < gridSize * gridSize; i++) {
+    const tile = document.createElement("div");
+    tile.classList.add("tile");
+    tile.dataset.content =
+      CONTENTS[Math.floor(Math.random() * CONTENTS.length)];
+    tile.addEventListener("click", () => revealTile(tile));
+    grid.appendChild(tile);
+    tiles.push(tile);
+  }
 
-    // CREAR LAS CUADRICULAS CON EL CONTENIDO ALEATORIO
+  let currentLevel = parseInt(levelDisplay.textContent.split(" ")[1]);
+  levelDisplay.textContent = `Nivel: ${currentLevel + 1}`;
+  // FUNCION PARA REVELAR LAS CASILLAS Y VERIFICAR EL CONTENIDO DEPENDIENDO DE LAS CASILLAS SE VA A PRESENTAR UN EVENTO DISTINTO
+  function revealTile(tile) {
+    if (!tile.classList.contains("revealed") && !inCombat) {
+      tile.classList.add("revealed");
+
+      const mark = document.createElement("div");
+      mark.classList.add("tile-mark");
+      mark.textContent = "X";
+      tile.appendChild(mark);
+
+      // VERFICA EL TIPO DE CONTENIDO ------- MAS ADELANTE VOY A AGREGAR ARMAS Y CAPAZ ARMADURAS
+      if (tile.dataset.content === "pocion") {
+        const img = document.createElement("img");
+        img.src = "/assets/healingpotion.png";
+        img.alt = "Poción";
+        img.classList.add("potion-image");
+
+        tile.textContent = ""; // LIMPIAR TEXTO
+        tile.appendChild(img);
+
+        // EVENTO PARA RECOPILAR LA POCION
+        tile.addEventListener("click", () => collectPotion(tile));
+        // ESTA VALIDACION SOLO LLAMA A LA FUNCION TEMPORALMENTE MAS ADELANTE VOY A EVALUAR AGREGAR UNA IMAGEN Y UNA INTERFAZ MEJOR
+      } else if (tile.dataset.content === "arma") {
+        const img = document.createElement("img");
+        img.src = "assets/sword.png";
+        img.alt = "Espada";
+        img.classList.add("weapon-image");
+
+        tile.textContent = "";
+        tile.appendChild(img);
+        tile.addEventListener("click", () => collectWeapon(tile));
+      } else if (tile.dataset.content === "trampa") {
+        const img = document.createElement("img");
+        img.src = "assets/trap.png";
+        img.alt = "Trampa";
+        img.classList.add("trap-image");
+
+        tile.textContent = "";
+        tile.appendChild(img);
+        // tile.addEventListener("click", ()  => activateTrap(tile)) ;
+        //DECIDI QUE SERIA BUENO QUE SE ACTIVE AUTOMATICAMENTE LA TRAMPA
+        setTimeout(() => {
+          activateTrap();
+        }, 300);
+      } else if (tile.dataset.content === "escalera") {
+        const img = document.createElement("img");
+        img.src = "assets/stairs.png";
+        img.alt = "Escaleras";
+        img.classList.add("stairs-image");
+        tile.textContent = "";
+        tile.appendChild(img);
+        //tile.addEventListener("click", () => nextLevel(tile));
+      } else if (tile.dataset.content === "tesoro") {
+        const img = document.createElement("img");
+        img.src = "assets/diamond.png";
+        img.alt = "Diamante";
+        img.classList.add("diamond-image");
+        tile.textContent = "";
+        tile.appendChild(img);
+        tile.addEventListener("click", () => collectDiamond(tile));
+      } else {
+        tile.textContent = tile.dataset.content;
+        if (tile.dataset.content === "enemigo") {
+          startCombat();
+        }
+      }
+    }
+  }
+
+  // FUNCION PARA RECOGER POCION (QUEDO OBSOLETA.... POR EL MOMENTO)
+  // function gainLife() {
+  //     lives++;
+  //     livesDisplay.textContent = `Vidas: ${lives}`;
+  //     alert("¡Has encontrado una poción! Ganas 1 vida.");
+  // }
+
+  //FUNCION PARA ACTIVAR TRAMPA
+  function activateTrap() {
+    tiles.innerHTML = ""; // BORRA EL CONTENIDO DE LA CASILLA
+    // alert("Has caído en una trampa! Pierdes 1 de vida.");
+    Swal.fire({
+        position: "center",
+        icon: "warning",
+        title: "Caiste en una trampa!",
+        text:"Pierdes 1 de vida",
+        showConfirmButton: false,
+        width: "20%",
+        timer: 1500
+      });
+    lives--; // RESTA UNA VIDA
+    livesDisplay.textContent = `Vidas: ${lives}`; // ACTUALIZA EL CONTADOR DE VIDAS
+    // SI LA CANTIDAD DE VIDAS LLEGA A 0 LUEGO DE ACTIVAR LA TRAMPA EL JUEGO TERMINA
+    if (lives == 0) {
+      //alert("Perdiste todas tus vidas! Fin del juego.");
+      Swal.fire({
+        position: "center",
+        icon: "error",
+        title: "Perdiste todas tus vidas!",
+        text:"Fin del juego!",
+        showConfirmButton: false,
+        width: "20%",
+        timer: 1500
+      });
+      disableTiles(); // DESABILITA LAS CASILLAS
+    }
+  }
+
+  function collectDiamond(tile) {
+    tile.innerHTML = "";
+    //alert("Encontraste un diamante!");
+    Swal.fire({
+        position: "center",
+        icon: "warning",
+        title: "Encontaste un diamante!",
+        text:"Diamante +1",
+        showConfirmButton: false,
+        width: "20%",
+        timer: 1500
+      });
+    diamonds++;
+    diamondsDisplay.textContent = `Diamantes: ${diamonds}`;
+  }
+
+  // FUNCION PARA RECOGER POCION
+  function collectPotion(tile) {
+    tile.innerHTML = ""; // BORRA LA IMAGEN DE POCION
+    //alert("Has encontrado una poción! +1 Vida");
+    Swal.fire({
+        position: "center",
+        icon: "warning",
+        title: "Encontraste una pocion!",
+        text:"+ 1 de vida",
+        showConfirmButton: false,
+        width: "20%",
+        timer: 1500
+      });
+    lives++; // SUMA UNA VIDA
+    livesDisplay.textContent = `Vidas: ${lives}`; // ACTUALIZA EL CONTADOR DE VIDAS
+  }
+
+  // FUNCION PARA RECOGER EL ARMA
+  function collectWeapon(tile) {
+    tile.innerHTML = "";
+    //alert("Has encontrado un arma! +1 de daño");
+    Swal.fire({
+        position: "center",
+        icon: "warning",
+        title: "Encontraste un arma!",
+        text:"+ 1 de daño",
+        showConfirmButton: false,
+        width: "20%",
+        timer: 1500
+      });
+    heroDamage++;
+  }
+
+  // FUNCION PARA PASAR AL SIGUIENTE NIVEL
+  function nextLevel() {
+    //alert("Encontraste unas escaleras, subiendo al siguiente nivel!");
+    Swal.fire({
+        position: "center",
+        icon: "warning",
+        title: "Escaleras!",
+        text:"Subiendo al siguiente nivel!",
+        showConfirmButton: false,
+        width: "20%",
+        timer: 1500
+      });
+    grid.innerHTML = ""; // LIMPIA LA CUADRICULA
+    tiles.length = 0; // LIMPIA EL ARRAY DE CASILLAS
+
+    //CONSIDERE LA POSIBILIDAD DE AUMENTAR EL TAMAÑO DE LA CUADRICULA
+    // gridSize++;
+
+    //VUELVO A GENERAR EL TABLERO
     for (let i = 0; i < gridSize * gridSize; i++) {
-        const tile = document.createElement("div");
-        tile.classList.add("tile");
-        tile.dataset.content = CONTENTS[Math.floor(Math.random() * CONTENTS.length)];
-        tile.addEventListener("click", () => revealTile(tile));
-        grid.appendChild(tile);
-        tiles.push(tile);
-    }
-    
-
-    let currentLevel = parseInt(levelDisplay.textContent.split(" ")[1]);
-    levelDisplay.textContent = `Nivel: ${currentLevel + 1}`;
-    // FUNCION PARA REVELAR LAS CASILLAS Y VERIFICAR EL CONTENIDO DEPENDIENDO DE LAS CASILLAS SE VA A PRESENTAR UN EVENTO DISTINTO
-    function revealTile(tile) {
-        if (!tile.classList.contains("revealed") && !inCombat) {
-            tile.classList.add("revealed");
-
-            const mark = document.createElement("div");
-            mark.classList.add("tile-mark");
-            mark.textContent = "X";
-            tile.appendChild(mark);
-
-            // VERFICA EL TIPO DE CONTENIDO ------- MAS ADELANTE VOY A AGREGAR ARMAS Y CAPAZ ARMADURAS
-            if (tile.dataset.content === "pocion") {
-                const img = document.createElement("img");
-                img.src = "/assets/healingpotion.png";
-                img.alt = "Poción";
-                img.classList.add("potion-image");
-
-                tile.textContent = ""; // LIMPIAR TEXTO
-                tile.appendChild(img);
-
-                // EVENTO PARA RECOPILAR LA POCION
-                tile.addEventListener("click", () => collectPotion(tile));
-                // ESTA VALIDACION SOLO LLAMA A LA FUNCION TEMPORALMENTE MAS ADELANTE VOY A EVALUAR AGREGAR UNA IMAGEN Y UNA INTERFAZ MEJOR
-            }    else if (tile.dataset.content === "arma") {
-                const img = document.createElement("img");
-                img.src = "assets/sword.png"; 
-                img.alt = "Espada";
-                img.classList.add("weapon-image");
-    
-                tile.textContent = "";
-                tile.appendChild(img);
-                tile.addEventListener("click", () => collectWeapon(tile));
-            }  else if (tile.dataset.content === "trampa") {
-                const img = document.createElement("img");
-                img.src = "assets/trap.png";
-                img.alt = "Trampa";
-                img.classList.add("trap-image");
-
-                tile.textContent = "";
-                tile.appendChild(img);
-                // tile.addEventListener("click", ()  => activateTrap(tile)) ;
-                //DECIDI QUE SERIA BUENO QUE SE ACTIVE AUTOMATICAMENTE LA TRAMPA
-                setTimeout(() => {
-                    activateTrap()
-                }, 300);
-
-            } else if (tile.dataset.content === "escalera") {
-                const img = document.createElement("img");
-                img.src = "assets/stairs.png";
-                img.alt = "Escaleras";
-                img.classList.add("stairs-image");
-                tile.textContent = "";
-                tile.appendChild(img);
-                tile.addEventListener("click", () => nextLevel(tile));
-                
-            } else if (tile.dataset.content === "tesoro") {
-                const img = document.createElement("img");
-                img.src = "assets/diamond.png";
-                img.alt = "Diamante";
-                img.classList.add("diamond-image");
-                tile.textContent = "";
-                tile.appendChild(img);
-                tile.addEventListener("click", () => collectDiamond(tile));
-            } 
-            else {
-                tile.textContent = tile.dataset.content;
-                if (tile.dataset.content === "enemigo") {
-                    startCombat();
-                }
-            }
-        }
+      const tile = document.createElement("div");
+      tile.classList.add("tile");
+      tile.dataset.content =
+        CONTENTS[Math.floor(Math.random() * CONTENTS.length)];
+      tile.addEventListener("click", () => revealTile(tile));
+      grid.appendChild(tile);
+      tiles.push(tile);
     }
 
-    // FUNCION PARA RECOGER POCION (QUEDO OBSOLETA.... POR EL MOMENTO)
-    // function gainLife() {
-    //     lives++;
-    //     livesDisplay.textContent = `Vidas: ${lives}`;
-    //     alert("¡Has encontrado una poción! Ganas 1 vida.");
-    // }
+    // SE MUESTRA EL NIVEL
+    const levelDisplay =
+      document.getElementById("levelDisplay") || document.createElement("div");
+    levelDisplay.id = "levelDisplay";
+    // SI SE EMPIEZA EN 5X5  EL NIVEL ES 5-4 = 1
+    levelDisplay.textContent = `Nivel: ${gridSize - 4}`;
+    document.body.insertBefore(levelDisplay, grid);
+  }
 
-    //FUNCION PARA ACTIVAR TRAMPA
-    function activateTrap() {
-        tiles.innerHTML = ""; // BORRA EL CONTENIDO DE LA CASILLA
-        alert("Has caído en una trampa! Pierdes 1 de vida.");
-        lives--; // RESTA UNA VIDA
-        livesDisplay.textContent = `Vidas: ${lives}`; // ACTUALIZA EL CONTADOR DE VIDAS
-        // SI LA CANTIDAD DE VIDAS LLEGA A 0 LUEGO DE ACTIVAR LA TRAMPA EL JUEGO TERMINA
-        if (lives == 0) {
-            alert("Perdiste todas tus vidas! Fin del juego.");
-            disableTiles(); // DESABILITA LAS CASILLAS
-        }
-    }
+  // FUNCION PARA INICIAR EL COMBATE
+  function startCombat() {
+    inCombat = true;
+    let enemyHP = 3; // PUNTOS DE VIDA DEL ENEMIGO MAS ADELANTE VOY A AGREGAR DISTINTOS ENEMIGOS
 
-
-
-    function collectDiamond(tile) {
-        tile.innerHTML = "";
-        alert("Encontraste un diamante!");
-        diamonds++
-        diamondsDisplay.textContent = `Diamantes: ${diamonds}`;
-    }
-
-    // FUNCION PARA RECOGER POCION
-    function collectPotion(tile) {
-        tile.innerHTML = ""; // BORRA LA IMAGEN DE POCION
-        alert("Has encontrado una poción! +1 Vida");
-        lives++; // SUMA UNA VIDA
-        livesDisplay.textContent = `Vidas: ${lives}`; // ACTUALIZA EL CONTADOR DE VIDAS
-    }
-
-    // FUNCION PARA RECOGER EL ARMA
-    function collectWeapon(tile) {
-        tile.innerHTML = ""; 
-        alert("Has encontrado un arma! +1 de daño");
-        heroDamage++; 
-    }
-
-    // FUNCION PARA PASAR AL SIGUIENTE NIVEL
-    function nextLevel() {
-        alert("Encontraste unas escaleras, subiendo al siguiente nivel!");
-        grid.innerHTML = ""; // LIMPIA LA CUADRICULA
-        tiles.length = 0; // LIMPIA EL ARRAY DE CASILLAS
-
-        //CONSIDERE LA POSIBILIDAD DE AUMENTAR EL TAMAÑO DE LA CUADRICULA
-        // gridSize++;
-
-        //VUELVO A GENERAR EL TABLERO
-        for (let i = 0; i < gridSize * gridSize; i++) {
-            const tile = document.createElement("div");
-            tile.classList.add("tile");
-            tile.dataset.content = CONTENTS[Math.floor(Math.random() * CONTENTS.length)];
-            tile.addEventListener("click", () => revealTile(tile));
-            grid.appendChild(tile);
-            tiles.push(tile);
-        }
-
-        // SE MUESTRA EL NIVEL
-        const levelDisplay = document.getElementById("levelDisplay") || document.createElement("div");
-        levelDisplay.id = "levelDisplay";
-       // SI SE EMPIEZA EN 5X5  EL NIVEL ES 5-4 = 1
-        levelDisplay.textContent = `Nivel: ${gridSize - 4}`; 
-        document.body.insertBefore(levelDisplay, grid);
-    }
-
-    // FUNCION PARA INICIAR EL COMBATE
-    function startCombat() {
-        inCombat = true;
-        let enemyHP = 3; // PUNTOS DE VIDA DEL ENEMIGO MAS ADELANTE VOY A AGREGAR DISTINTOS ENEMIGOS
-
-        // CREA EL MODAL DE COMBATE
-        const modal = document.createElement("div");
-        modal.id = "combatModal";
-        modal.innerHTML = `
+    // CREA EL MODAL DE COMBATE
+    const modal = document.createElement("div");
+    modal.id = "combatModal";
+    modal.innerHTML = `
             <div class="modal-content">
                 <h2>¡Un enemigo apareció!</h2>
                 <div class="battlefield">
@@ -285,86 +350,100 @@ document.addEventListener("DOMContentLoaded", async () => {
         <p>Vida del enemigo: <span id="enemyHP">${enemyHP}</span></p>
     </div>
         `;
-        document.body.appendChild(modal);
-        attackTurn();
-    }
+    document.body.appendChild(modal);
+    attackTurn();
+  }
 
-    // TURNOS DE ATAQUE DEL JUGADOR
-    function attackTurn() {
-        if (lives > 0) {
-            animateAttack("hero", "enemy", () => {
-                // EL DAÑO ESTA COMPRENDIDO ENTRE 1 Y 2
-                let damage = Math.floor(Math.random() * 2) + 1; 
-                let enemyHPElement = document.getElementById("enemyHP");
-                let enemyHP = parseInt(enemyHPElement.textContent) - damage;
-                enemyHPElement.textContent = enemyHP;
+  // TURNOS DE ATAQUE DEL JUGADOR
+  function attackTurn() {
+    if (lives > 0) {
+      animateAttack("hero", "enemy", () => {
+        // EL DAÑO ESTA COMPRENDIDO ENTRE 1 Y 2
+        let damage = Math.floor(Math.random() * 2) + 1;
+        let enemyHPElement = document.getElementById("enemyHP");
+        let enemyHP = parseInt(enemyHPElement.textContent) - damage;
+        enemyHPElement.textContent = enemyHP;
 
-                if (enemyHP <= 0) {
-                    let enemyImage = document.getElementById("enemy");
-                    enemyImage.src = "/assets/dead.png";
-                    // enemyImage.style.opacity = "0.5";
+        if (enemyHP <= 0) {
+          let enemyImage = document.getElementById("enemy");
+          enemyImage.src = "/assets/dead.png";
+          // enemyImage.style.opacity = "0.5";
 
-                    setTimeout(() => {
-                        //alert("¡Has derrotado al enemigo!");
-                        Swal.fire({
-                            title: "Ganaste!!!",
-                            text: "Deerrotaste al enemigo!",
-                            icon: "success",
-                            confirmButtonText: "Continuar",
-                            width: "30%"
-                        }).then(() => {
-                            document.body.removeChild(document.getElementById("combatModal"));
-                            inCombat = false;
-
-                        });
-                    }, 500);
-                } else {
-                    setTimeout(() => enemyAttack(), 500);
-                }
+          setTimeout(() => {
+            //alert("¡Has derrotado al enemigo!");
+            Swal.fire({
+              title: "Ganaste!!!",
+              // text: "Deerrotaste al enemigo!",
+              // icon: "success",
+              // confirmButtonText: "Continuar",
+              icon: "success",
+              title: "Derrotaste al enemigo!",
+              showConfirmButton: false,
+              timer: 1000,
+              width: "20%",
+            }).then(() => {
+              document.body.removeChild(document.getElementById("combatModal"));
+              inCombat = false;
             });
+          }, 500);
+        } else {
+          setTimeout(() => enemyAttack(), 500);
         }
+      });
     }
+  }
 
-    // TURNO DE ATAQUE DEL ENEMIGO
-    function enemyAttack() {
-        if (lives > 0) {
-            animateAttack("enemy", "hero", () => {
-                if (Math.random() < 0.5) { // 50% DE POSIBILIDAD DE QUE EL ENEMIGO HAGA DAÑO
-                    lives--;
-                    livesDisplay.textContent = `Vidas: ${lives}`;
-                    if (lives <= 0) {
-                        setTimeout(() => {
-                            alert("¡Has perdido todas tus vidas! Fin del juego.");
-                            disableTiles(); // DESABILITA LAS CASILLAS
-                            document.body.removeChild(document.getElementById("combatModal"));
-                            inCombat = false;
-                        }, 500);
-                    } else {
-                        setTimeout(() => attackTurn(), 500);
-                    }
-                } else {
-                    setTimeout(() => attackTurn(), 500);
-                }
-            });
+  // TURNO DE ATAQUE DEL ENEMIGO
+  function enemyAttack() {
+    if (lives > 0) {
+      animateAttack("enemy", "hero", () => {
+        if (Math.random() < 0.5) {
+          // 50% DE POSIBILIDAD DE QUE EL ENEMIGO HAGA DAÑO
+          lives--;
+          livesDisplay.textContent = `Vidas: ${lives}`;
+          if (lives <= 0) {
+            setTimeout(() => {
+              //alert("¡Has perdido todas tus vidas! Fin del juego.");
+              Swal.fire({
+                position: "center",
+                icon: "warning",
+                title: "Perdiste todas tus vidas!",
+                text:"Fin del juego!",
+                showConfirmButton: false,
+                width: "20%",
+                timer: 1500
+              });
+              disableTiles(); // DESABILITA LAS CASILLAS
+              document.body.removeChild(document.getElementById("combatModal"));
+              inCombat = false;
+            }, 500);
+          } else {
+            setTimeout(() => attackTurn(), 500);
+          }
+        } else {
+          setTimeout(() => attackTurn(), 500);
         }
+      });
     }
+  }
 
-    // FUNCION PARA ANIMAR EL ATAQUE DE LOS PERSONAJES
-    function animateAttack(attackerId, targetId, callback) {
-        const attacker = document.getElementById(attackerId).parentElement; // ANIMAR EL CONTENEDOR DEL PERSONAJE
-        const originalPos = attacker.style.transform || "translateX(0)";
+  // FUNCION PARA ANIMAR EL ATAQUE DE LOS PERSONAJES
+  function animateAttack(attackerId, targetId, callback) {
+    const attacker = document.getElementById(attackerId).parentElement; // ANIMAR EL CONTENEDOR DEL PERSONAJE
+    const originalPos = attacker.style.transform || "translateX(0)";
 
-        attacker.style.transition = "transform 0.3s ease";
-        attacker.style.transform = attackerId === "hero" ? "translateX(80px)" : "translateX(-80px)";
+    attacker.style.transition = "transform 0.3s ease";
+    attacker.style.transform =
+      attackerId === "hero" ? "translateX(80px)" : "translateX(-80px)";
 
-        setTimeout(() => {
-            attacker.style.transform = originalPos;
-            setTimeout(callback, 300);
-        }, 300);
-    }
+    setTimeout(() => {
+      attacker.style.transform = originalPos;
+      setTimeout(callback, 300);
+    }, 300);
+  }
 
-    // DESHABILITAR TODAS LAS CASILLAS CUANDO EL JUEGO TEMINA
-    function disableTiles() {
-        tiles.forEach(tile => tile.replaceWith(tile.cloneNode(true)));
-    }
+  // DESHABILITAR TODAS LAS CASILLAS CUANDO EL JUEGO TEMINA
+  function disableTiles() {
+    tiles.forEach((tile) => tile.replaceWith(tile.cloneNode(true)));
+  }
 });
