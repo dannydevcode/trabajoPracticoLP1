@@ -35,6 +35,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     
     const storedHero = await getHeroName();
 
+
+    document.getElementById("heroModal")?.remove();
+    document.getElementById("modalOverlay")?.remove();
      // CREA Y MUESTRA EL CONTADOR DE VIDAS
      const livesDisplay = document.createElement("div");
      livesDisplay.id = "lives";
@@ -68,7 +71,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                 <h2>Ingrese el Nombre de su Heroe</h2>
                 <input type="text" id="heroNameInput" placeholder="Nombre del Héroe" value="${storedHero || ''}">
                 <button id="saveHeroButton">Guardar</button>
-                <button id="clearHeroButton">Borrar</button>
             </div>
         `;
         document.body.appendChild(modal);
@@ -81,13 +83,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                 document.body.removeChild(overlay);
                 displayHeroName(heroName);
             }
-        });
-
-        document.getElementById("clearHeroButton").addEventListener("click", async  () => {
-            await db.hero.clear();
-            document.getElementById("heroNameInput").value = "";
-            console.log("Nombre eliminado con éxito");
-            showHeroModal();
         });
     }
 
