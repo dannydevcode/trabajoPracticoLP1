@@ -219,7 +219,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         title: "Caiste en una trampa!",
         text:"Pierdes 1 de vida",
         showConfirmButton: false,
-        width: "20%",
+        width: "50%",
         timer: 1500
       });
     lives--; // RESTA UNA VIDA
@@ -233,7 +233,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         title: "Perdiste todas tus vidas!",
         text:"Fin del juego!",
         showConfirmButton: false,
-        width: "20%",
+        width: "50%",
         timer: 1500
       });
       disableTiles(); // DESABILITA LAS CASILLAS
@@ -249,7 +249,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         title: "Encontaste un diamante!",
         text:"Diamante +1",
         showConfirmButton: false,
-        width: "20%",
+        width: "50%",
         timer: 1500
       });
     diamonds++;
@@ -266,7 +266,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         title: "Encontraste una pocion!",
         text:"+ 1 de vida",
         showConfirmButton: false,
-        width: "20%",
+        width: "50%",
         timer: 1500
       });
     lives++; // SUMA UNA VIDA
@@ -283,7 +283,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         title: "Encontraste un arma!",
         text:"+ 1 de daño",
         showConfirmButton: false,
-        width: "20%",
+        width: "50%",
         timer: 1500
       });
     heroDamage++;
@@ -298,7 +298,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         title: "Escaleras!",
         text:"Subiendo al siguiente nivel!",
         showConfirmButton: false,
-        width: "20%",
+        width: "50%",
         timer: 1500
       });
     grid.innerHTML = ""; // LIMPIA LA CUADRICULA
@@ -380,7 +380,7 @@ document.addEventListener("DOMContentLoaded", async () => {
               title: "Derrotaste al enemigo!",
               showConfirmButton: false,
               timer: 1000,
-              width: "20%",
+              width: "50%",
             }).then(() => {
               document.body.removeChild(document.getElementById("combatModal"));
               inCombat = false;
@@ -410,7 +410,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 title: "Perdiste todas tus vidas!",
                 text:"Fin del juego!",
                 showConfirmButton: false,
-                width: "20%",
+                width: "50%",
                 timer: 1500
               });
               disableTiles(); // DESABILITA LAS CASILLAS
