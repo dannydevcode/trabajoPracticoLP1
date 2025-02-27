@@ -9,9 +9,11 @@ db.version(1).stores({
 // GUARDO EL NOMBRE DEL HEROE
 async function saveHeroName(name) {
     // ELIMINO EL NOMBRE ANTERIOR
-    // await db.hero.clear();
+    await db.hero.clear();
     await db.hero.add({name});
 }
+
+
 
 // OBTENER EL DATO ALMACENADO
 async function getHeroName(name) {
@@ -21,14 +23,16 @@ async function getHeroName(name) {
 //ASEGURARSE DE QUE SE CARGE EL DOCUMENTO ANTES DE EJECUTAR EL JUEGO
 
 document.addEventListener("DOMContentLoaded", async () => {
+    // showHeroModal();
     const gridSize = 5; // DE MOMENTO EL TAMAÑO DE LA CUADRICULA ES (5x5)
     const grid = document.getElementById("grid"); // EN ESTE ELEMENTO SE RENDERIZA LA CUADRICULA
     const tiles = []; // ARRAY QUE ALMACENA LAS CASILLAS DE LA CUUDRICULA
     let lives = 3; // CONTADOR DE VIDAS DEL JUAGADOR MAS ADELANTE SE VA A INICIALIZAR CON MAS VIDAS
     let heroDamage = 3; // DAÑO BASE DEL HEROE
+    let diamonds = 0;
     let inCombat = false; // INDICADOR SI EL JUGADOR ESTA EN COMBATE
     await db.hero.clear();
-
+    
     const storedHero = await getHeroName();
 
      // CREA Y MUESTRA EL CONTADOR DE VIDAS
@@ -36,6 +40,11 @@ document.addEventListener("DOMContentLoaded", async () => {
      livesDisplay.id = "lives";
      livesDisplay.textContent = `Vidas: ${lives}`;
      document.body.insertBefore(livesDisplay, grid);
+
+     const diamondsDisplay = document.createElement("div");
+     diamondsDisplay.id = "diamond";
+     diamondsDisplay.textContent = `Diamantes: ${diamonds}`;
+     document.body.insertBefore(diamondsDisplay, grid);
 
     if(!storedHero) {
         showHeroModal();
@@ -45,7 +54,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     
 
-    function showHeroModal() {
+    async function showHeroModal() {
+        const storedHero = await getHeroName();
 
         const overlay = document.createElement("div");
         overlay.id = "modalOverlay";
@@ -56,8 +66,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         modal.innerHTML = `
             <div>
                 <h2>Ingrese el Nombre de su Heroe</h2>
-                <input type ="text" id ="heroNameInput" placeholder = "Nombe del Heroe">
+                <input type="text" id="heroNameInput" placeholder="Nombre del Héroe" value="${storedHero || ''}">
                 <button id="saveHeroButton">Guardar</button>
+                <button id="clearHeroButton">Borrar</button>
             </div>
         `;
         document.body.appendChild(modal);
@@ -70,7 +81,14 @@ document.addEventListener("DOMContentLoaded", async () => {
                 document.body.removeChild(overlay);
                 displayHeroName(heroName);
             }
-        })
+        });
+
+        document.getElementById("clearHeroButton").addEventListener("click", async  () => {
+            await db.hero.clear();
+            document.getElementById("heroNameInput").value = "";
+            console.log("Nombre eliminado con éxito");
+            showHeroModal();
+        });
     }
 
     function displayHeroName(name) {
@@ -90,7 +108,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     levelDisplay.textContent = `Nivel: 0`;
     document.body.insertBefore(levelDisplay, grid);
     // ARRAY DE CONTENIDOS DE LAS CASILLAS 
-    const CONTENTS = ["vacio", "enemigo", "tesoro", "trampa", "pocion", "escalera", "arma","enemigo","enemigo","trampa","trampa","trampa",]; // MAS ADELANTE VOY A AGREGAR MAS COTENIDOS
+    const CONTENTS = ["vacio", "enemigo", "tesoro", "trampa", "pocion", "escalera", "arma","enemigo","enemigo","trampa","trampa","trampa", "tesoro", "tesoro", "tesoro", "tesoro"]; // MAS ADELANTE VOY A AGREGAR MAS COTENIDOS
 
     // CREAR LAS CUADRICULAS CON EL CONTENIDO ALEATORIO
     for (let i = 0; i < gridSize * gridSize; i++) {
@@ -109,6 +127,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     function revealTile(tile) {
         if (!tile.classList.contains("revealed") && !inCombat) {
             tile.classList.add("revealed");
+
+            const mark = document.createElement("div");
+            mark.classList.add("tile-mark");
+            mark.textContent = "X";
+            tile.appendChild(mark);
 
             // VERFICA EL TIPO DE CONTENIDO ------- MAS ADELANTE VOY A AGREGAR ARMAS Y CAPAZ ARMADURAS
             if (tile.dataset.content === "pocion") {
@@ -140,7 +163,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
                 tile.textContent = "";
                 tile.appendChild(img);
-                activateTrap();
+                // tile.addEventListener("click", ()  => activateTrap(tile)) ;
+                //DECIDI QUE SERIA BUENO QUE SE ACTIVE AUTOMATICAMENTE LA TRAMPA
+                setTimeout(() => {
+                    activateTrap()
+                }, 300);
 
             } else if (tile.dataset.content === "escalera") {
                 const img = document.createElement("img");
@@ -151,7 +178,16 @@ document.addEventListener("DOMContentLoaded", async () => {
                 tile.appendChild(img);
                 tile.addEventListener("click", () => nextLevel(tile));
                 
-            } else {
+            } else if (tile.dataset.content === "tesoro") {
+                const img = document.createElement("img");
+                img.src = "assets/diamond.png";
+                img.alt = "Diamante";
+                img.classList.add("diamond-image");
+                tile.textContent = "";
+                tile.appendChild(img);
+                tile.addEventListener("click", () => collectDiamond(tile));
+            } 
+            else {
                 tile.textContent = tile.dataset.content;
                 if (tile.dataset.content === "enemigo") {
                     startCombat();
@@ -180,6 +216,14 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
 
+
+
+    function collectDiamond(tile) {
+        tile.innerHTML = "";
+        alert("Encontraste un diamante!");
+        diamonds++
+        diamondsDisplay.textContent = `Diamantes: ${diamonds}`;
+    }
 
     // FUNCION PARA RECOGER POCION
     function collectPotion(tile) {
